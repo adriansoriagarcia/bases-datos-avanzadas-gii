@@ -9,3 +9,8 @@ Este material está disponible libremente, bajo la responsabilidad exclusiva de 
 ## Temas
 
 * [Tema 2: Lenguaje XML](temas/tema-2/README.md)
+* [Tema 3: Bases de Datos para Documentos XML](temas/tema-3/README.md)
+
+## Herramientas
+
+* [Docker](docker/README.md)
