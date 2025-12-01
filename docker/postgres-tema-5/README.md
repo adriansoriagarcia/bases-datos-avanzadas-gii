@@ -58,37 +58,209 @@ Este contenedor proporciona la interfaz administrativa y de consulta del entorno
 
 Su volumen `pgadmin-data` mantiene la configuración persistente de conexiones, preferencias y servidores registrados.
 
-# 🔧 Funcionamiento general del entorno
+## 🔧 Funcionamiento general del entorno
 
-Cada nodo PostgreSQL se inicia con su propio conjunto de datos, de acuerdo con el script correspondiente. Todos los nodos comparten:
+La idea didáctica de este entorno es la siguiente:
 
-* Estructura de tabla idéntica (`estaciones`).
-* Autenticación homogénea (`profesor/postgres`).
-* La misma base de datos (`demos`).
+* `db_centro` y `db_norte` → **fragmentación horizontal** de una tabla `estaciones`.
+* `db_coord` → coordina y ve todo como una sola BD mediante `postgres_fdw`.
+* `pgadmin` → interfaz web para gestionar y ejecutar las consultas.
 
-El nodo coordinador (`db_coord`) se configura para:
+### Scripts de inicialización
 
-1. Crear **servidores remotos** (`CREATE SERVER`) apuntando a `db_centro` y `db_norte`.
-2. Definir **user mappings** para la autenticación remota.
-3. Crear **foreign tables** que representan las tablas del nodo remoto.
-4. Unificar los datos mediante vistas (ej.: `CREATE VIEW estaciones_todas AS ...`).
+#### `init/centro/01_estaciones_centro.sql`
 
-Esto permite ejecutar consultas como:
+Tabla `estaciones` con datos de la zona centro:
 
 ```sql
-SELECT * FROM estaciones_todas;
+CREATE TABLE IF NOT EXISTS estaciones (
+    id         SERIAL PRIMARY KEY,
+    comunidad  TEXT NOT NULL,
+    municipio  TEXT NOT NULL,
+    combustible TEXT NOT NULL,
+    precio     NUMERIC(5,2) NOT NULL
+);
+
+INSERT INTO estaciones (comunidad, municipio, combustible, precio) VALUES
+('Comunidad de Madrid', 'Madrid', 'Gasolina 95 E5', 1.58),
+('Comunidad de Madrid', 'Alcalá de Henares', 'Gasolina 95 E5', 1.55),
+('Comunidad de Madrid', 'Getafe', 'Gasóleo A', 1.49),
+('Castilla-La Mancha', 'Toledo', 'Gasolina 95 E5', 1.53),
+('Castilla-La Mancha', 'Albacete', 'Gasóleo A', 1.47),
+('Castilla y León', 'Valladolid', 'Gasolina 95 E5', 1.56),
+('Castilla y León', 'Segovia', 'Gasóleo A', 1.48);
 ```
 
-y obtener datos provenientes de múltiples nodos sin que sea necesario conocer su ubicación física.
+#### `init/norte/01_estaciones_norte.sql`
 
-# 🎯 Propósito del entorno
+Misma tabla pero con datos del norte:
 
-Este entorno Docker está diseñado para mostrar de manera reproducible:
+```sql
+CREATE TABLE IF NOT EXISTS estaciones (
+    id         SERIAL PRIMARY KEY,
+    comunidad  TEXT NOT NULL,
+    municipio  TEXT NOT NULL,
+    combustible TEXT NOT NULL,
+    precio     NUMERIC(5,2) NOT NULL
+);
 
-* Cómo se construye una arquitectura distribuida homogénea basada en PostgreSQL.
-* Cómo dividir datos entre nodos físicos independientes (fragmentación horizontal).
-* Cómo acceder de forma transparente a esos datos desde un nodo coordinador.
-* Cómo funcionan las consultas distribuidas a través de foreign tables.
-* Qué implicaciones tienen estas configuraciones en términos de rendimiento y organización de datos.
+INSERT INTO estaciones (comunidad, municipio, combustible, precio) VALUES
+('Cantabria', 'Santander', 'Gasolina 95 E5', 1.60),
+('Cantabria', 'Torrelavega', 'Gasóleo A', 1.50),
+('Asturias', 'Oviedo', 'Gasolina 95 E5', 1.59),
+('Asturias', 'Gijón', 'Gasóleo A', 1.52),
+('País Vasco', 'Bilbao', 'Gasolina 95 E5', 1.62),
+('País Vasco', 'San Sebastián', 'Gasóleo A', 1.54);
+```
 
-El entorno, además, es completamente aislado y reproducible: con un simple `docker compose up -d` se obtiene una infraestructura distribuida completa lista para ser usada.
+#### `init/coord/01_coord_init.sql`
+
+En el coordinador solo preparamos la extensión FDW (el enlace a los otros nodos lo harás tú como parte de la demo):
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+```
+
+> Lo demás (CREATE SERVER, FOREIGN TABLE, VIEW…) lo harás desde pgAdmin.
+
+### Arrancar el entorno
+
+Iniciar los contenedores desde VSCode o con el siguiente comando:
+
+```bash
+docker compose up -d
+```
+
+Cuando todo esté “healthy”, abrir pgAdmin:
+
+* pgAdmin: **[http://localhost:8081](http://localhost:8081)**
+
+  * Usuario: `admin@example.com`
+  * Contraseña: `admin`
+
+---
+
+### Configurar conexiones en pgAdmin
+
+En pgAdmin crea tres servidores:
+
+#### Servidor `db_centro`
+
+* **Name:** `db_centro`
+* **Connection → Host:** `db_centro`
+* **Port:** `5432`
+* **Maintenance DB:** `demos`
+* **Username:** `profesor`
+* **Password:** `postgres` (marca “Save Password”)
+
+#### Servidor `db_norte`
+
+* **Name:** `db_norte`
+* **Host:** `db_norte`
+* Resto igual que arriba.
+
+#### Servidor `db_coord`
+
+* **Name:** `db_coord`
+* **Host:** `db_coord`
+* **Maintenance DB:** `demos`
+* Usuario/clave igual.
+
+#### Configurar la base de datos distribuida en `db_coord`
+
+Abre la Query Tool sobre la BD `demos` en `db_coord` y ejecuta el siguiente comando para asegurar la extensión FDW:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+```
+
+#### Crear servidores remotos
+
+```sql
+CREATE SERVER srv_centro
+  FOREIGN DATA WRAPPER postgres_fdw
+  OPTIONS (host 'db_centro', dbname 'demos', port '5432');
+
+CREATE SERVER srv_norte
+  FOREIGN DATA WRAPPER postgres_fdw
+  OPTIONS (host 'db_norte', dbname 'demos', port '5432');
+```
+
+#### Crear mappings de usuario
+
+```sql
+CREATE USER MAPPING FOR profesor
+  SERVER srv_centro
+  OPTIONS (user 'profesor', password 'postgres');
+
+CREATE USER MAPPING FOR profesor
+  SERVER srv_norte
+  OPTIONS (user 'profesor', password 'postgres');
+```
+
+#### Crear tablas externas
+
+Creamos dos tablas externas que apuntan a la tabla `estaciones` de cada nodo:
+
+```sql
+CREATE FOREIGN TABLE estaciones_centro (
+    id         INTEGER,
+    comunidad  TEXT,
+    municipio  TEXT,
+    combustible TEXT,
+    precio     NUMERIC(5,2)
+)
+SERVER srv_centro
+OPTIONS (schema_name 'public', table_name 'estaciones');
+
+CREATE FOREIGN TABLE estaciones_norte (
+    id         INTEGER,
+    comunidad  TEXT,
+    municipio  TEXT,
+    combustible TEXT,
+    precio     NUMERIC(5,2)
+)
+SERVER srv_norte
+OPTIONS (schema_name 'public', table_name 'estaciones');
+```
+
+#### Crear vista unificada
+
+```sql
+CREATE VIEW estaciones_todas AS
+SELECT * FROM estaciones_centro
+UNION ALL
+SELECT * FROM estaciones_norte;
+```
+
+### Consultas de ejemplo
+
+Ahora, desde `db_coord`, ejecutas las siguientes consultas:
+
+Ver todos los datos (transparencia de fragmentación + ubicación):
+
+```sql
+SELECT * FROM estaciones_todas
+ORDER BY comunidad, municipio;
+```
+
+Estación más barata de Gasolina 95 E5:
+
+```sql
+SELECT comunidad, municipio, precio
+FROM estaciones_todas
+WHERE combustible = 'Gasolina 95 E5'
+ORDER BY precio
+LIMIT 3;
+```
+
+Precio medio por comunidad:
+
+```sql
+SELECT comunidad, combustible, AVG(precio) AS precio_medio
+FROM estaciones_todas
+GROUP BY comunidad, combustible
+ORDER BY combustible, precio_medio;
+```
+
+👉 Didácticamente: estás ejecutando **una sola consulta** contra `db_coord`, pero en realidad está leyendo datos de **dos nodos físicos distintos** (`db_centro`, `db_norte`) usando FDW → **base de datos distribuida homogénea** con transparencia.
