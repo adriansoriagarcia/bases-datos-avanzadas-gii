@@ -4,6 +4,10 @@
 
 Las bases de datos distribuidas almacenan y gestionan datos desde **varios nodos interconectados**, manteniendo transparencia para el usuario final. Estos sistemas aportan autonomía, disponibilidad y escalabilidad, pero también introducen complejidad en su gestión.
 
+## 🖥️ Contenedor Docker para este tema
+
+La descripción del contenedor Docker para poner en práctica los conceptos de este tema se encuentra disponible en el directorio [docker/postgres-tema-5](../../docker/postgres-tema-5/README.md)
+
 ## 1. Sistemas distribuidos
 
 Un sistema distribuido está formado por varios ordenadores (nodos) que **no comparten memoria ni disco**, pero cooperan a través de redes.

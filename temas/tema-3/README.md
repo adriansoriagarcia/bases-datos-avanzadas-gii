@@ -18,6 +18,6 @@
 
 ## Ejemplos de consultas en Postgres
 
-Para la demostración de consultas SQL, se recomienda utilizar el [contenedor Docker de Postgres](../../docker/postgres/) que se encuentra en la carpeta `docker`.
+Para la demostración de consultas SQL, se recomienda utilizar el [contenedor Docker de Postgres](../../docker/postgres-tema-3/README.md) que se encuentra en la carpeta `docker`.
 
 * [code/consultas_xml.sql](code/consultas_xml.sql) - Ejemplo de consultas SQL en una base de datos relacional.

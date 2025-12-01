@@ -2,6 +2,10 @@
 
 Este tema explica cómo funcionan los **índices** en bases de datos, por qué aceleran las consultas y cuáles son las técnicas para almacenarlos y gestionarlos de manera eficiente. También introduce los **métodos de asociación**, usados para acceso directo a datos sin recurrir a índices tradicionales.
 
+## 🖥️ Contenedor Docker para este tema
+
+La descripción del contenedor Docker para poner en práctica los conceptos de este tema se encuentra disponible en el directorio [docker/postgres-tema-6](../../docker/postgres-tema-6/README.md)
+
 ## 1. ¿Qué es un índice en una base de datos?
 
 Un índice funciona igual que el índice de un libro: permite **acceder rápidamente** a un registro sin leer toda la tabla.
@@ -105,3 +109,132 @@ Sin embargo, tienen inconvenientes que obligan a planificar bien su diseño:
 * No crear demasiados índices en tablas con muchas escrituras.
 * Crear índices compuestos para consultas por varias columnas.
 * Elegir el orden adecuado de las columnas en índices multicolumna.
+
+## Índices basados en trigramas (`pg_trgm`)
+
+Los *trigramas* son una técnica de indexación avanzada que permite acelerar búsquedas por similitud y consultas con patrones del tipo:
+
+* `LIKE '%texto%'`
+* `ILIKE '%cadena%'`
+* Comparaciones por **distancia de edición**
+* Búsquedas difusas o aproximadas
+
+Este tipo de consulta normalmente **no puede utilizar índices B-tree**, porque el patrón empieza con un comodín (`%`), lo que impide ordenar eficientemente por prefijo. Sin embargo, PostgreSQL ofrece la extensión **`pg_trgm`**, que analiza el texto dividiéndolo en trigramas para permitir búsquedas ultra rápidas incluso en patrones no indexables de forma tradicional.
+
+### ✔️ ¿Qué es un trigrama?
+
+Un **trigrama** es un grupo de **tres caracteres consecutivos** extraídos de una cadena.
+
+Ejemplo:
+
+Cadena:
+
+```text
+"gato"
+```
+
+Trigramas generados:
+
+```text
+" ga", "gat", "ato", "o "
+```
+
+(Se añaden espacios virtuales al inicio y al final para capturar el contexto).
+
+Esto permite comparar cadenas basándose en cuántos trigramas comparten, lo que es útil para medir **similitud** entre textos.
+
+### ✔️ ¿Cómo funciona `pg_trgm`?
+
+La extensión crea un índice especial (normalmente tipo **GIN**, aunque también permite **GiST**) que almacena los trigramas de cada valor de texto. Cuando se ejecuta una consulta con `LIKE '%texto%'`, PostgreSQL:
+
+1. Divide el patrón de búsqueda en trigramas.
+2. Busca en el índice qué filas contienen trigramas similares.
+3. Reduce drásticamente el número de filas a examinar.
+4. Compara las coincidencias reales para obtener el resultado final.
+
+De este modo, consultas que normalmente requerirían un **Seq Scan** sobre miles o millones de filas pasan a usar un índice optimizado para búsquedas aproximadas.
+
+### ✔️ Ejemplo de creación de índice de trigramas
+
+La extensión debe activarse una vez:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+```
+
+Creación del índice:
+
+```sql
+CREATE INDEX idx_clientes_nombre_trgm
+ON clientes USING gin (nombre gin_trgm_ops);
+```
+
+### ✔️ Comparación práctica
+
+#### Sin índice
+
+```sql
+EXPLAIN ANALYZE
+SELECT * FROM clientes
+WHERE nombre ILIKE '%and%';
+```
+
+Plan esperado:
+
+* `Seq Scan` por toda la tabla.
+* Tiempo elevado si la tabla tiene muchos registros.
+
+#### Con índice de trigramas
+
+```sql
+CREATE INDEX idx_clientes_nombre_trgm
+ON clientes USING gin (nombre gin_trgm_ops);
+```
+
+Repetir consulta:
+
+```sql
+EXPLAIN ANALYZE
+SELECT * FROM clientes
+WHERE nombre ILIKE '%and%';
+```
+
+Plan esperado:
+
+* `Bitmap Index Scan` o `Index Cond` usando `idx_clientes_nombre_trgm`.
+* Tiempo muy reducido.
+* Menos lecturas en disco.
+* Escalabilidad mucho mayor.
+
+### ✔️ ¿Cuándo usar trigramas?
+
+Son especialmente útiles cuando:
+
+* Existen búsquedas frecuentes con comodines al inicio (`%texto%`).
+* Se buscan cadenas dentro de otras cadenas (substring search).
+* Se realizan búsquedas de nombres, direcciones, productos, descripciones, etc.
+* El texto es moderadamente largo (nombre, email, comentarios…).
+* Se requieren búsquedas aproximadas (*fuzzy search*) con `similarity()`.
+
+Ejemplo de comparación difusa:
+
+```sql
+SELECT *
+FROM clientes
+WHERE similarity(nombre, 'María') > 0.4
+ORDER BY similarity(nombre, 'María') DESC;
+```
+
+### ✔️ Impacto y limitaciones
+
+**Ventajas:**
+
+* Aceleración espectacular de búsquedas con `%...%`.
+* Compatibles con `LIKE`, `ILIKE`, `similarity` y operadores `<->`.
+* Ideales para bases de datos con mucho texto.
+
+**Limitaciones:**
+
+* Consumen más espacio que un índice B-tree tradicional.
+* Requieren más trabajo en inserciones y actualizaciones.
+* No son idóneos para columnas muy cortas (p. ej., códigos de 2–3 caracteres).
