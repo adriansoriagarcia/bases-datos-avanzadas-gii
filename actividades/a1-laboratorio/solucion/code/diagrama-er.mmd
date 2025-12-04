@@ -1,0 +1,75 @@
+erDiagram
+
+    EMPRESA ||--o{ ESTACION : opera
+    PROVINCIA ||--o{ MUNICIPIO : contiene
+    MUNICIPIO ||--o{ ESTACION : ubica
+    ESTACION ||--o{ PRECIO : reporta
+    TIPO_CARBURANTE ||--o{ PRECIO : corresponde_a
+    ESTACION }o--|| HORARIO : tiene
+    ESTACION ||--o{ ESTACION_SERVICIO : ofrece
+    SERVICIO ||--o{ ESTACION_SERVICIO : incluye
+
+    EMPRESA {
+        int id_empresa PK
+        string nombre_comercial
+        string razon_social
+    }
+
+    PROVINCIA {
+        int id_provincia PK
+        string nombre
+        string codigo_ine
+    }
+
+    MUNICIPIO {
+        int id_municipio PK
+        string nombre
+        int id_provincia FK
+        string codigo_ine
+    }
+
+    ESTACION {
+        int id_estacion PK
+        int id_empresa FK
+        int id_municipio FK
+        string direccion
+        string codigo_postal
+        string margen
+        float latitud
+        float longitud
+        string telefono
+        boolean activa
+        datetime fecha_actualizacion
+    }
+
+    TIPO_CARBURANTE {
+        int id_tipo PK
+        string codigo
+        string nombre
+        string unidad
+    }
+
+    PRECIO {
+        int id_precio PK
+        int id_estacion FK
+        int id_tipo FK
+        float importe
+        datetime fecha_reporte
+        string fuente
+    }
+
+    HORARIO {
+        int id_horario PK
+        string descripcion
+    }
+
+    SERVICIO {
+        int id_servicio PK
+        string nombre
+    }
+
+    ESTACION_SERVICIO {
+        int id_estacion FK
+        int id_servicio FK
+        string observaciones
+    }
