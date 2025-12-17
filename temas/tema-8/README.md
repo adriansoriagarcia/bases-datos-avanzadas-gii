@@ -66,3 +66,13 @@ Los SGBD modernos incorporan mecanismos de alta disponibilidad para reducir el i
 - Réplicas de bases de datos.
 - Sistemas de backup y restore.
 - Soluciones específicas de cada proveedor (Oracle, SQL Server, PostgreSQL).
+
+## Recursos extra
+
+A continuación, se listan algunos recursos extra relacionados con este tema:
+
+- [Introducción a los grupos de disponibilidad Always On - SQL Server](https://learn.microsoft.com/es-es/sql/database-engine/availability-groups/windows/getting-started-with-always-on-availability-groups-sql-server?view=sql-server-ver17)
+
+- [Alta disponibilidad en Oracle](https://docs.oracle.com/es-ww/iaas/Content/cloud-adoption-framework/high-availability.htm)
+
+- [Interplanetary file system (IPFS)](https://ipfs.eth.link/)
