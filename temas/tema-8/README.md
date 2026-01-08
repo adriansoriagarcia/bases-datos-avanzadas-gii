@@ -4,10 +4,6 @@
 
 El Tema 8 aborda los **sistemas de recuperación** en los sistemas gestores de bases de datos (SGBD), cuyo objetivo principal es garantizar la **atomicidad, consistencia y durabilidad** de las transacciones ante la aparición de fallos. La recuperación es un componente esencial para asegurar la fiabilidad de la base de datos en entornos reales.
 
-## 🖥️ Contenedor Docker para este tema
-
-La descripción del contenedor Docker para poner en práctica los conceptos de este tema se encuentra disponible en el directorio [docker/postgres-tema-8](../../docker/postgres-tema-8/README.md)
-
 ## 1. Introducción a los sistemas de recuperación
 
 Los fallos son inevitables en cualquier sistema informático. En bases de datos, el sistema de recuperación permite que, incluso ante errores, la base de datos pueda volver a un **estado consistente**, preservando las propiedades ACID y minimizando el tiempo de indisponibilidad.
