@@ -15,6 +15,8 @@ Este material está disponible libremente, bajo la responsabilidad exclusiva de 
 * [Tema 6 — Indexación y Asociación](temas/tema-6/README.md)
 * [Tema 7 — Introducción al procesamiento transaccional](temas/tema-8/README.md)
 * [Tema 8 — Sistemas de recuperación](temas/tema-8/README.md)
+* [Tema 9 — Ejecución y procesamiento de consultas](temas/tema-9/README.md)
+* [Tema 10 - Tema 10 – Bases de datos NoSQL](temas/tema-10/README.md)
 
 ## Herramientas
 
