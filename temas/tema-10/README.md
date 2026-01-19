@@ -1,4 +1,4 @@
-# Tema 10 – Resumen: Bases de datos NoSQL con ejemplos del mundo real
+# Tema 10 – Bases de datos NoSQL
 
 ## 1. ¿Qué son las bases de datos NoSQL?
 
