@@ -159,7 +159,7 @@ D)
 SELECT * FROM linea_pedido;
 ```
 
-### Ejercicio 2: Sistema de Gestión de Plataforma de Aprendizaje Corporativo**
+### Ejercicio 2: Sistema de Gestión de Plataforma de Aprendizaje Corporativo
 
 #### Parte 1 – Caso práctico (6 puntos)
 
