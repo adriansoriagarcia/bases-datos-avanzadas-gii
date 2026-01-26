@@ -6,35 +6,35 @@ Las organizaciones necesitan **conservar y explotar datos históricos** para apo
 
 ### OLTP vs OLAP (idea central)
 
-* **OLTP (On-Line Transaction Processing):** orientado a **transacciones** (operación diaria). 
-* **OLAP (On-Line Analytical Processing):** orientado al **análisis**, tendencias y reporting para decisiones. 
+* **OLTP (On-Line Transaction Processing):** orientado a **transacciones** (operación diaria).
+* **OLAP (On-Line Analytical Processing):** orientado al **análisis**, tendencias y reporting para decisiones.
 
 ### Propiedades del Data Warehouse
 
 * Organizado por **áreas del negocio**.
 * Integra datos desde **múltiples fuentes OLTP**.
-* No se actualiza necesariamente en tiempo real (cargas periódicas). 
+* No se actualiza necesariamente en tiempo real (cargas periódicas).
 
-**Beneficios esperables:** competitividad, productividad y potencial de mayores ganancias. 
+**Beneficios esperables:** competitividad, productividad y potencial de mayores ganancias.
 
 ## Componentes y retos típicos en un almacén de datos
 
-En un DW aparecen retos operativos y de diseño, por ejemplo: **cuándo recoger datos**, **qué arquitectura elegir**, **cómo integrar fuentes heterogéneas**, y la **transformación/limpieza** antes de cargar. 
+En un DW aparecen retos operativos y de diseño, por ejemplo: **cuándo recoger datos**, **qué arquitectura elegir**, **cómo integrar fuentes heterogéneas**, y la **transformación/limpieza** antes de cargar.
 
 ### Flujo ETL clásico
 
 1. **Extracción:** recuperar datos desde orígenes.
 2. **Transformación:** adaptar/limpiar/convertir (p. ej., unidades de medida).
-3. **Carga:** introducir en el DW. 
+3. **Carga:** introducir en el DW.
 
 También es habitual:
 
 * **Propagar actualizaciones** desde orígenes al DW.
-* Usar **resúmenes** para acelerar consultas sobre volúmenes grandes. 
+* Usar **resúmenes** para acelerar consultas sobre volúmenes grandes.
 
 ## Arquitecturas de Data Warehouse que debes conocer
 
-En este tema se distinguen dos enfoques principales: 
+En este tema se distinguen dos enfoques principales:
 
 ### A) Arquitectura con tablas de resumen
 
@@ -140,13 +140,13 @@ flowchart TB
 Variantes:
 
 * **Copo de nieve (Snowflake):** dimensiones más normalizadas.
-* **Copo de estrella:** combinación de dimensiones normalizadas y no normalizadas. 
+* **Copo de estrella:** combinación de dimensiones normalizadas y no normalizadas.
 
-Además, se introduce la idea de **MOLAP** (bases multidimensionales) que suelen visualizarse como “cubos”: cada dimensión es un eje; añadir una dimensión implica pasar a un “hipercubo”. 
+Además, se introduce la idea de **MOLAP** (bases multidimensionales) que suelen visualizarse como “cubos”: cada dimensión es un eje; añadir una dimensión implica pasar a un “hipercubo”.
 
 ## OLAP: qué es y para qué se usa en negocio
 
-OLAP forma parte de **Business Intelligence**, y busca **consultar grandes volúmenes con rapidez** usando estructuras multidimensionales (cubos) que contienen **resúmenes** de datos provenientes de sistemas transaccionales. 
+OLAP forma parte de **Business Intelligence**, y busca **consultar grandes volúmenes con rapidez** usando estructuras multidimensionales (cubos) que contienen **resúmenes** de datos provenientes de sistemas transaccionales.
 
 ### Ejemplos típicos de uso (negocio)
 
@@ -155,19 +155,19 @@ OLAP forma parte de **Business Intelligence**, y busca **consultar grandes volú
 * **Dirección/finanzas:** P&L por unidad de negocio, desviaciones vs presupuesto por trimestre, KPIs ejecutivos.
 * **Operaciones:** tiempos de entrega por almacén–transportista–semana, incidencias por zona.
 * **RR. HH.:** rotación por departamento–antigüedad–mes, absentismo por centro–turno.
-  (Estos ejemplos encajan con la finalidad descrita en el tema: informes de ventas, marketing, dirección y minería de datos). 
+  (Estos ejemplos encajan con la finalidad descrita en el tema: informes de ventas, marketing, dirección y minería de datos).
 
 ### Concepto clave: el cubo OLAP
 
-Un **cubo OLAP** es un “array multidimensional” que permite **agrupar, segmentar y reorganizar** grandes cantidades de datos según las necesidades del usuario. 
+Un **cubo OLAP** es un “array multidimensional” que permite **agrupar, segmentar y reorganizar** grandes cantidades de datos según las necesidades del usuario.
 
 ## Tipos de implementación OLAP
 
-Los tres enfoques más comunes son los siguientes: 
+Los tres enfoques más comunes son los siguientes:
 
 1. **MOLAP:** datos en una **base de datos multidimensional**.
 2. **ROLAP:** datos en una **BD relacional**, normalmente **desnormalizada**, con detalle (agregaciones bajo demanda o preagregadas según diseño).
-3. **HOLAP:** híbrido; algunos resúmenes (a menudo en memoria o estructuras optimizadas) y el detalle en relacional. 
+3. **HOLAP:** híbrido; algunos resúmenes (a menudo en memoria o estructuras optimizadas) y el detalle en relacional.
 
 ## Herramientas para implementar OLAP (ecosistema real)
 
